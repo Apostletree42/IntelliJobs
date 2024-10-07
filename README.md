@@ -1,8 +1,8 @@
-## KMEC-IntelliJobs: Automating Job Portal Analysis with Large Language Models
+## IntelliJobs: Automating Job Portal Analysis with Large Language Models
 
 ### Overview
 
-KMEC-IntelliJobs is an innovative job recommendation system that leverages the power of Large Language Models (LLMs) to provide valuable insights to job seekers and employers. This project focuses on analyzing job descriptions from various job portals to extract key information such as highest salary, job title, location, company ratings, company size, employment type, and other essential details. By using advanced natural language processing (NLP) techniques, the system delivers personalized job recommendations based on user-defined criteria.
+IntelliJobs is an innovative job recommendation system that leverages the power of Large Language Models (LLMs) to provide valuable insights to job seekers and employers. This project focuses on analyzing job descriptions from various job portals to extract key information such as highest salary, job title, location, company ratings, company size, employment type, and other essential details. By using advanced natural language processing (NLP) techniques, the system delivers personalized job recommendations based on user-defined criteria.
 
 ### Features
 
