@@ -1,4 +1,4 @@
-from rag.engine import RAGEngine
+from ..rag.engine import RAGEngine
 
 class ChatbotService:
     def __init__(self):
