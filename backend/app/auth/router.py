@@ -1,14 +1,14 @@
-from fastapi import APIRouter, Depends
-from .service import AuthService
-from .models import UserCreate, Token
+from fastapi import APIRouter, Depends, HTTPException, status
+from . import schemas, service
 
-router = APIRouter()
-auth_service = AuthService()
+auth_router = APIRouter()
 
-@router.post("/register", response_model=Token)
-async def register(user: UserCreate):
-    return await auth_service.register(user)
+@auth_router.post("/register", response_model=schemas.UserResponse)
+async def register_user(user: schemas.UserCreate):
+    # Call the register_user function from the service
+    return await service.register_user(user)
 
-@router.post("/login", response_model=Token)
-async def login(user: UserCreate):
-    return await auth_service.login(user)
+@auth_router.post("/login", response_model=schemas.TokenResponse)
+async def login_user(user: schemas.UserLogin):
+    # Call the login_user function from the service
+    return await service.login_user(user)
