@@ -1,36 +1,21 @@
-from bson import ObjectId
-from .models import User, UserCreate
-from .utils import verify_password, get_password_hash
-from .db import get_user_collection
+from .database import users_collection
+from .models import UserModel
+from .utils import get_password_hash, verify_password, create_access_token  
+from .schemas import UserCreate, UserLogin
+from fastapi import HTTPException, status
 
-async def get_user(username: str):
-    collection = await get_user_collection()
-    user_dict = await collection.find_one({"username": username})
-    if user_dict:
-        return User(**user_dict)
-    return None
 
-async def get_user_by_id(user_id: str):
-    collection = await get_user_collection()
-    user_dict = await collection.find_one({"_id": ObjectId(user_id)})
-    if user_dict:
-        return User(**user_dict)
-    return None
+async def register_user(user: UserCreate):
+    user_doc = UserModel(email=user.email, hashed_password=get_password_hash(user.password))
+    result = await users_collection.insert_one(user_doc.dict())
+    return {"id": str(result.inserted_id), "email": user.email}
 
-async def authenticate_user(username: str, password: str):
-    user = await get_user(username)
-    if not user:
-        return False
-    if not verify_password(password, user.hashed_password):
-        return False
-    return user
-
-async def create_user(user: UserCreate):
-    hashed_password = get_password_hash(user.password)
-    collection = await get_user_collection()
-    user_dict = user.model_dump()
-    user_dict["hashed_password"] = hashed_password
-    del user_dict["password"]
-    result = await collection.insert_one(user_dict)
-    created_user = await get_user_by_id(str(result.inserted_id))
-    return created_user
+async def login_user(user: UserLogin):
+    user_doc = await users_collection.find_one({"email": user.email})
+    if not user_doc or not verify_password(user.password, user_doc["hashed_password"]):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect email or password"
+        )
+    access_token = create_access_token({"sub": user.email})
+    return {"access_token": access_token, "token_type": "bearer"}
