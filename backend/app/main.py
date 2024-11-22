@@ -1,9 +1,9 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from .config import Settings
-from app.auth.router import router as auth_router
-from app.chatbot.router import router as chatbot_router
-from app.rag.router import router as rag_router
+from app.config import Settings
+from app.auth.router import auth_router
+# from app.chatbot.router import chatbot_router
+# from app.rag.router import router as rag_router
 from contextlib import asynccontextmanager
 from .core.database import connect_to_mongodb, close_mongodb_connection
 
@@ -29,8 +29,8 @@ app.add_middleware(
 )
 
 app.include_router(auth_router, prefix="/auth", tags=["auth"])
-app.include_router(chatbot_router, prefix="/chatbot", tags=["chatbot"])
-app.include_router(rag_router, prefix="/rag", tags=["rag"])
+# app.include_router(chatbot_router, prefix="/chatbot", tags=["chatbot"])
+# app.include_router(rag_router, prefix="/rag", tags=["rag"])
 
 @app.get("/")
 async def root():
