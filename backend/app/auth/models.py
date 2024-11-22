@@ -1,50 +1,7 @@
-# from pydantic import BaseModel, Field, ConfigDict
-# from bson import ObjectId
-# from typing import Any
-
-# class PydanticObjectId(ObjectId):
-#     @classmethod
-#     def __get_validators__(cls):
-#         yield cls.validate
-
-#     @classmethod
-#     def validate(cls, v):
-#         if not isinstance(v, ObjectId):
-#             raise TypeError('ObjectId required')
-#         return str(v)
-
-#     @classmethod
-#     def __get_pydantic_json_schema__(cls, field_schema: Any) -> Any:
-#         field_schema.update(type="string")
-#         return field_schema
-
-# class User(BaseModel):
-#     id: PydanticObjectId = Field(default_factory=PydanticObjectId, alias="_id")
-#     username: str
-#     email: str
-#     hashed_password: str
-#     disabled: bool = False
-
-#     model_config = ConfigDict(
-#         populate_by_name=True,
-#         arbitrary_types_allowed=True,
-#         json_encoders={ObjectId: str}
-#     )
-
-# class UserCreate(BaseModel):
-#     username: str
-#     email: str
-#     password: str
-
-# class Token(BaseModel):
-#     access_token: str
-#     token_type: str
-
-# class TokenData(BaseModel):
-#     username: str | None = None
-
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, EmailStr, validator
 from bson import ObjectId
+from typing import Optional
+from datetime import datetime
 
 class PyObjectId(ObjectId):
     @classmethod
@@ -54,15 +11,37 @@ class PyObjectId(ObjectId):
     @classmethod
     def validate(cls, v):
         if not isinstance(v, ObjectId):
-            raise TypeError("ObjectId required")
-        return str(v)
+            try:
+                return ObjectId(str(v))
+            except:
+                raise TypeError("Invalid ObjectId")
+        return v
 
-class UserModel(BaseModel):
-    id: PyObjectId = None
-    email: str
-    hashed_password: str
+class BaseModelWithId(BaseModel):
+    id: Optional[PyObjectId] = Field(alias="_id", default=None)
 
     class Config:
-        orm_mode = True
         arbitrary_types_allowed = True
         json_encoders = {ObjectId: str}
+
+class UserModel(BaseModelWithId):
+    email: EmailStr
+    hashed_password: str
+    is_active: bool = True
+    is_superuser: bool = False
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    last_login: Optional[datetime] = None
+
+    @validator('email')
+    def validate_email(cls, v):
+        # Add more sophisticated email validation if needed
+        return v
+
+class TokenData(BaseModel):
+    username: Optional[str] = None
+    exp: Optional[datetime] = None
+
+class TokenBlacklist(BaseModelWithId):
+    token: str
+    blacklisted_at: datetime = Field(default_factory=datetime.utcnow)
+    expires_at: datetime
