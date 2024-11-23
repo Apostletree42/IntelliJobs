@@ -1,28 +1,36 @@
-from pydantic import BaseModel, Field, EmailStr, validator
-from bson import ObjectId
-from typing import Optional
 from datetime import datetime
+from typing import Optional, Any
+from pydantic import BaseModel, EmailStr, Field, GetJsonSchemaHandler
+from bson import ObjectId
+from pydantic_core import CoreSchema, core_schema
+from typing_extensions import Annotated
 
 class PyObjectId(ObjectId):
     @classmethod
-    def __get_validators__(cls):
-        yield cls.validate
-
-    @classmethod
-    def validate(cls, v):
-        if not isinstance(v, ObjectId):
-            try:
-                return ObjectId(str(v))
-            except:
-                raise TypeError("Invalid ObjectId")
-        return v
+    def __get_pydantic_core_schema__(
+        cls,
+        _source_type: Any,
+        _handler: GetJsonSchemaHandler,
+    ) -> CoreSchema:
+        return core_schema.json_or_python_schema(
+            json_schema=core_schema.str_schema(),
+            python_schema=core_schema.union_schema([
+                core_schema.is_instance_schema(ObjectId),
+                core_schema.str_schema(),
+            ]),
+            serialization=core_schema.plain_serializer_function_ser_schema(
+                lambda x: str(x),
+            ),
+        )
 
 class BaseModelWithId(BaseModel):
-    id: Optional[PyObjectId] = Field(alias="_id", default=None)
+    id: Optional[PyObjectId] = Field(default_factory=PyObjectId, alias="_id")
 
-    class Config:
-        arbitrary_types_allowed = True
-        json_encoders = {ObjectId: str}
+    model_config = {
+        "json_encoders": {ObjectId: str},
+        "populate_by_name": True,
+        "arbitrary_types_allowed": True,
+    }
 
 class UserModel(BaseModelWithId):
     email: EmailStr
@@ -32,10 +40,10 @@ class UserModel(BaseModelWithId):
     created_at: datetime = Field(default_factory=datetime.utcnow)
     last_login: Optional[datetime] = None
 
-    @validator('email')
-    def validate_email(cls, v):
+    @classmethod
+    def validate_email(cls, email: str) -> str:
         # Add more sophisticated email validation if needed
-        return v
+        return email
 
 class TokenData(BaseModel):
     username: Optional[str] = None
