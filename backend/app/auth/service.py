@@ -25,7 +25,7 @@ async def register_user(user: UserCreate) -> UserResponse:
     Register a new user with comprehensive checks
     """
     # Check if user already exists
-    existing_user = await users_collection.find_one({"email": user.email})
+    existing_user = await users_collection.find_one({"email": user.email.lower()})
     if existing_user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -36,17 +36,28 @@ async def register_user(user: UserCreate) -> UserResponse:
         # Create user model with hashed password
         user_doc = UserModel(
             email=user.email,
-            hashed_password=get_password_hash(user.password)
+            hashed_password=get_password_hash(user.password),
+            created_at=datetime.utcnow()
         )
         
         # Insert user into database
         result = await users_collection.insert_one(user_doc.dict(by_alias=True))
         
+        # Fetch the created user to return complete data
+        created_user = await users_collection.find_one({"_id": result.inserted_id})
+        if not created_user:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="User created but not found"
+            )
+
         logger.info(f"User registered: {user.email}")
         
         return UserResponse(
-            id=str(result.inserted_id),
-            email=user.email
+            id=str(created_user["_id"]),
+            email=created_user["email"],
+            is_active=created_user["is_active"],
+            created_at=created_user["created_at"]
         )
     
     except Exception as e:
