@@ -1,7 +1,10 @@
 from pydantic import BaseModel
+from typing import Optional, List, Dict, Any
 
-class RAGQuery(BaseModel):
+class QueryRequest(BaseModel):
     query: str
 
-class RAGResponse(BaseModel):
-    response: str
+class QueryResponse(BaseModel):
+    text: str
+    sender: str = "bot"
+    contexts: Optional[List[str]] = None
