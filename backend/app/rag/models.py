@@ -8,3 +8,4 @@ class QueryResponse(BaseModel):
     text: str
     sender: str = "bot"
     contexts: Optional[List[str]] = None
+    user: Optional[str] = None
