@@ -6,9 +6,9 @@ from ..config import get_settings, Settings
 from ..auth.dependencies import get_current_user
 from ..auth.models import User
 
-router = APIRouter()
+rag_router = APIRouter(prefix="/rag", tags=["rag"])
 
-@router.post("/query", response_model=QueryResponse)
+@rag_router.post("/query", response_model=QueryResponse)
 async def handle_query(
     request: QueryRequest,
     current_user: User = Depends(get_current_user),
@@ -20,7 +20,7 @@ async def handle_query(
     return response
 
 # Optional: Add an endpoint to get user's query history
-@router.get("/history", response_model=List[QueryResponse])
+@rag_router.get("/history", response_model=List[QueryResponse])
 async def get_query_history(
     current_user: User = Depends(get_current_user),
     settings: Settings = Depends(get_settings)
