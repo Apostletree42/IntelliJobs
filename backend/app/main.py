@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import Settings
 from .auth.router import auth_router
+from .rag.router import rag_router
 # from app.chatbot.router import chatbot_router
 # from app.rag.router import router as rag_router
 from contextlib import asynccontextmanager
@@ -29,6 +30,7 @@ app.add_middleware(
 )
 
 app.include_router(auth_router)
+app.include_router(rag_router)
 # app.include_router(chatbot_router, prefix="/chatbot", tags=["chatbot"])
 # app.include_router(rag_router, prefix="/rag", tags=["rag"])
 
