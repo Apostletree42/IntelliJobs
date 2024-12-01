@@ -7,40 +7,45 @@ from ..config import settings
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-def validate_password(password: str) -> bool:
+def validate_password(password: str) -> str:
     """
-    Validate password based on configuration rules
+    Validate password based on configuration rules and return validation error message if invalid
     """
     if len(password) < settings.PASSWORD_MIN_LENGTH:
-        return False
+        raise ValueError(f"Password must be at least {settings.PASSWORD_MIN_LENGTH} characters long")
     
     if settings.PASSWORD_REQUIRE_UPPERCASE and not re.search(r'[A-Z]', password):
-        return False
+        raise ValueError("Password must contain at least one uppercase letter")
     
     if settings.PASSWORD_REQUIRE_LOWERCASE and not re.search(r'[a-z]', password):
-        return False
+        raise ValueError("Password must contain at least one lowercase letter")
     
     if settings.PASSWORD_REQUIRE_DIGITS and not re.search(r'\d', password):
-        return False
+        raise ValueError("Password must contain at least one digit")
     
     if settings.PASSWORD_REQUIRE_SPECIAL_CHARS and not re.search(r'[!@#$%^&*(),.?":{}|<>]', password):
-        return False
+        raise ValueError("Password must contain at least one special character")
     
-    return True
-
-def get_password_hash(password: str) -> str:
-    """
-    Hash the user's password
-    """
-    if not validate_password(password):
-        raise ValueError("Password does not meet complexity requirements")
-    return pwd_context.hash(password)
+    return password
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """
     Verify a stored password against one provided by user
     """
-    return pwd_context.verify(plain_password, hashed_password)
+    try:
+        return pwd_context.verify(plain_password, hashed_password)
+    except Exception:
+        return False
+
+def get_password_hash(password: str) -> str:
+    """
+    Hash the user's password
+    """
+    try:
+        validated_password = validate_password(password)
+        return pwd_context.hash(validated_password)
+    except ValueError as e:
+        raise ValueError(str(e))
 
 def create_access_token(data: dict, expires_delta: timedelta = None) -> str:
     """

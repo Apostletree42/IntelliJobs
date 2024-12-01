@@ -13,12 +13,12 @@ from jose import JWTError, jwt
 from typing import Optional
 
 from ..config import settings
-from .models import TokenData, UserModel
-from .service import get_user
+from .models import TokenData, User
+from .service import get_user_by_email_or_username
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
-async def get_current_user(token: str = Depends(oauth2_scheme)) -> UserModel:
+async def get_current_user(token: str = Depends(oauth2_scheme)) -> User:
     """
     Validate JWT token and retrieve current user
     """
@@ -41,13 +41,13 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) -> UserModel:
     except JWTError:
         raise credentials_exception
     
-    user = await get_user(username)
+    user = await get_user_by_email_or_username(username)
     if user is None:
         raise credentials_exception
     
     return user
 
-async def get_current_active_user(current_user: UserModel = Depends(get_current_user)) -> UserModel:
+async def get_current_active_user(current_user: User = Depends(get_current_user)) -> User:
     """
     Ensure the user is active
     """
@@ -58,7 +58,7 @@ async def get_current_active_user(current_user: UserModel = Depends(get_current_
         )
     return current_user
 
-async def get_current_superuser(current_user: UserModel = Depends(get_current_active_user)) -> UserModel:
+async def get_current_superuser(current_user: User = Depends(get_current_active_user)) -> User:
     """
     Ensure the user is a superuser
     """

@@ -32,8 +32,9 @@ class BaseModelWithId(BaseModel):
         "arbitrary_types_allowed": True,
     }
 
-class UserModel(BaseModelWithId):
+class User(BaseModelWithId):  # Renamed from UserModel to User
     email: EmailStr
+    username: str  # Added username field
     hashed_password: str
     is_active: bool = True
     is_superuser: bool = False
@@ -48,8 +49,3 @@ class UserModel(BaseModelWithId):
 class TokenData(BaseModel):
     username: Optional[str] = None
     exp: Optional[datetime] = None
-
-class TokenBlacklist(BaseModelWithId):
-    token: str
-    blacklisted_at: datetime = Field(default_factory=datetime.utcnow)
-    expires_at: datetime
