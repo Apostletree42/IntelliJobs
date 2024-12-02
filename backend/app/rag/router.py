@@ -1,7 +1,7 @@
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
-from .models import QueryRequest, QueryResponse
-from .engine import process_query
+from .models import QueryRequest, QueryResponse, Conversation
+from .engine import RAGEngine
 from ..config import get_settings, Settings
 from ..auth.dependencies import get_current_user
 from ..auth.models import User
@@ -14,21 +14,12 @@ async def handle_query(
     current_user: User = Depends(get_current_user),
     settings: Settings = Depends(get_settings)
 ) -> QueryResponse:
-    
-    response = process_query(request.query, settings)
-    response.user = current_user.username 
-    return response
+    engine = RAGEngine(settings, current_user.username)
+    return await engine.process_query(request.query)
 
-# Optional: Add an endpoint to get user's query history
-@rag_router.get("/history", response_model=List[QueryResponse])
+@rag_router.get("/history", response_model=List[dict])
 async def get_query_history(
-    current_user: User = Depends(get_current_user),
-    settings: Settings = Depends(get_settings)
-) -> List[QueryResponse]:
-    # Here you would typically fetch the user's query history from your database
-    # For example:
-    # history = await get_user_query_history(current_user.username)
-    # return history
-    
-    # Placeholder response
-    return []
+    current_user: User = Depends(get_current_user)
+) -> List[dict]:
+    conversation = await Conversation.find_one({"user_id": current_user.username})
+    return conversation.messages if conversation else []
