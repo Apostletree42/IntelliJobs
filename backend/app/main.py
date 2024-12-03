@@ -1,20 +1,27 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import Settings
+from .rag.models import Conversation
+from .auth.models import User
 from .auth.router import auth_router
 from .rag.router import rag_router
 # from app.chatbot.router import chatbot_router
 # from app.rag.router import router as rag_router
 from contextlib import asynccontextmanager
 from .core.database import connect_to_mongodb, close_mongodb_connection
+from beanie import init_beanie
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup
     app.mongodb_client, app.mongodb = await connect_to_mongodb()
     print(f"Connected to MongoDB at {settings.DATABASE_URL}")
+    
+    await init_beanie(
+        database=app.mongodb,
+        document_models=[Conversation]
+    )
     yield
-    # Shutdown
+
     await close_mongodb_connection(app.mongodb_client)
     print("Disconnected from MongoDB")
 

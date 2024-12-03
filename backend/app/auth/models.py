@@ -5,6 +5,8 @@ from bson import ObjectId
 from pydantic_core import CoreSchema, core_schema
 from typing_extensions import Annotated
 
+
+# NOTE: a discrepancy here is, im using pydantic for data models in auth but beanie in rag
 class PyObjectId(ObjectId):
     @classmethod
     def __get_pydantic_core_schema__(
