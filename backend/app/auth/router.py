@@ -54,6 +54,7 @@ async def read_users_me(current_user: User = Depends(dependencies.get_current_ac
     Get current user profile
     """
     return schemas.UserResponse(
-        id=str(current_user.id), 
-        email=current_user.email
+        id=str(current_user.id),
+        email=current_user.email,
+        username=current_user.username
     )
