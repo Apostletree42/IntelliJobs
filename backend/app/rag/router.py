@@ -1,3 +1,4 @@
+import os
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from .models import QueryRequest, QueryResponse, Conversation
@@ -8,12 +9,14 @@ from ..auth.models import User
 
 rag_router = APIRouter(prefix="/rag", tags=["rag"])
 
+# router.py
 @rag_router.post("/query", response_model=QueryResponse)
 async def handle_query(
     request: QueryRequest,
     current_user: User = Depends(get_current_user),
     settings: Settings = Depends(get_settings)
 ) -> QueryResponse:
+    
     engine = RAGEngine(settings, current_user.username)
     return await engine.process_query(request.query)
 
