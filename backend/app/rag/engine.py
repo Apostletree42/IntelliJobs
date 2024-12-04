@@ -23,21 +23,21 @@ class RAGEngine:
             contexts = get_relevant_contexts(query, self.settings)
             context_text = "\n\n".join([match['metadata']['text'] for match in contexts])
             
-            # Add query to history
             self.conversation_history.append({"role": "user", "content": query})
             
-            augmented_prompt = f"""Previous conversation:
-{self._format_history()}
+            augmented_prompt = f"""You are a conversational job search assistant. Be natural and friendly while providing accurate information.
 
-Context: {context_text}
+    Previous messages:
+    {self._format_history()}
 
-Current question: {query}
+    Job listings context:
+    {context_text}
 
-Answer based on both the context and previous conversation if relevant."""
+    Question: {query}
+
+    Provide a natural, conversational response that builds on our previous discussion if relevant."""
 
             response = self.llm.invoke(augmented_prompt)
-            
-            # Add response to history
             self.conversation_history.append({"role": "assistant", "content": response.content})
             
             return QueryResponse(
